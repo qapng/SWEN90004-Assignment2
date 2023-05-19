@@ -7,6 +7,22 @@ public class Hormones {
         catabolicHormones = Params.INITIAL_CATABOLIC_HORMONE;
     }
 
+    public void removeAnabolicHormones(double value) {
+        anabolicHormones -= value;
+    }
+
+    public void removeCatabolicHormones(double value) {
+        catabolicHormones -= value;
+    }
+
+    public void addAnabolicHormones(double value) {
+        anabolicHormones += value;
+    }
+
+    public void addCatabolicHormones(double value) {
+        catabolicHormones += value;
+    }
+
     public double getAnabolicHormones() {
         return anabolicHormones;
     }

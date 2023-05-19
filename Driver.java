@@ -1,6 +1,6 @@
 import java.io.IOException;
-import java.util.ArrayList;
 import java.lang.Math;
+import java.util.ArrayList;
 
 public class Driver {
     public int tick;
@@ -10,7 +10,7 @@ public class Driver {
     public Recorder recorder;
     public Patch[][] patches;
 
-    public Driver() {
+    public Driver() throws IOException {
         tick = 0;
         totalMuscleMass = 0;
         recorder = new Recorder();
@@ -22,32 +22,38 @@ public class Driver {
         recorder.clearFileContent(Params.OUTPUT_FILE_NAME);
         String[] headers = { "Ticks", "Anabolic", "Catabolic", "Muscle Mass" };
         recorder.outputDataToCsv(Params.OUTPUT_FILE_NAME, headers);
+        updateTotalHormone();
+        updateTotalMuscleMass();
+        outputData();
 
         while (tick < Params.MAX_TICK) {
-            updateTotalHormone();
-            updateTotalMuscleMass();
-            outputData();
 
             perform_daily_activity();
             if (Inputs.IS_LIFT && tick % Inputs.DAYS_BETWEEN_WORKOUTS == 0) {
                 liftWeights();
             }
             sleep();
+            regulateHormones();
             developMuscle();
             tick++;
+            outputData();
         }
+        System.out.println("Done!");
     }
 
-    public void setup() {
+    public void setup() throws IOException {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
                 patches[x][y] = new Patch(x, y);
                 regulateMuscleFiber(patches[x][y].getMuscle());
             }
         }
+
     }
 
     public void outputData() throws IOException {
+        updateTotalHormone();
+        updateTotalMuscleMass();
         String[] outputString = { String.valueOf(tick), String.valueOf(meanAnabolicHormone),
                 String.valueOf(meanCatabolicHormone), String.valueOf(totalMuscleMass) };
         recorder.outputDataToCsv(Params.OUTPUT_FILE_NAME, outputString);
@@ -138,13 +144,6 @@ public class Driver {
     }
 
     public void grow(Muscle muscle, Hormones hormones) {
-        // to grow ;; turtle procedure
-        // ;; catabolic hormones must prepare the fibers for growth before the
-        // ;; anabolic hormones may add mass to the fibers
-        // set fiber-size (fiber-size - 0.20 * (log catabolic-hormone 10))
-        // set fiber-size (fiber-size + 0.20 * min (list (log anabolic-hormone 10)
-        // (1.05 * log catabolic-hormone 10)))
-        // end
         double curFiberSize = muscle.getFiberSize();
         double curAnabolic = hormones.getAnabolicHormones();
         double curCatabolic = hormones.getCatabolicHormones();
@@ -170,4 +169,91 @@ public class Driver {
             }
         }
     }
+
+    public void regulateHormones() {
+        diffuseHormones(patches, Params.HORMONE_DIFFUSE_RATE);
+        for (int x = 0; x < patches.length; x++) {
+            for (int y = 0; y < patches.length; y++) {
+                Hormones cuHormones = patches[x][y].getHormones();
+                double curAnabolic = cuHormones.getAnabolicHormones();
+                double curCatabolic = cuHormones.getCatabolicHormones();
+                cuHormones.setAnabolicHormones(Math.max(curAnabolic, Params.ANABOLIC_HORMONE_MIN));
+                cuHormones.setAnabolicHormones(Math.min(curAnabolic, Params.ANABOLIC_HORMONE_MAX));
+                cuHormones.setCatabolicHormones(Math.max(curCatabolic, Params.CATABOLIC_HORMONE_MIN));
+                cuHormones.setCatabolicHormones(Math.min(curCatabolic, Params.CATABOLIC_HORMONE_MAX));
+            }
+        }
+    }
+
+    public void diffuseHormones(Patch[][] patches, double diffuseRate) {
+        for (int x = 0; x < patches.length; x++) {
+            for (int y = 0; y < patches.length; y++) {
+                Hormones curPatchHormones = patches[x][y].getHormones();
+                double totalAnabolicShares = curPatchHormones.getAnabolicHormones() * diffuseRate;
+                double totalCatabolicShares = curPatchHormones.getCatabolicHormones() * diffuseRate;
+                ArrayList<Patch> neighbourPatches = getAdjacentPatch(patches, x, y);
+                int numNeighbour = neighbourPatches.size();
+                for (Patch patch : neighbourPatches) {
+                    patch.getHormones().addAnabolicHormones(totalAnabolicShares / Params.MAX_NUM_PATCH_NEIGHBOUR);
+                    patch.getHormones().addCatabolicHormones(totalCatabolicShares / Params.MAX_NUM_PATCH_NEIGHBOUR);
+                }
+                curPatchHormones
+                        .removeAnabolicHormones(totalAnabolicShares / Params.MAX_NUM_PATCH_NEIGHBOUR * numNeighbour);
+                curPatchHormones
+                        .removeCatabolicHormones(totalCatabolicShares / Params.MAX_NUM_PATCH_NEIGHBOUR * numNeighbour);
+
+            }
+        }
+
+    }
+
+    public ArrayList<Patch> getAdjacentPatch(Patch[][] patches, int x, int y) {
+        // Size of given 2d array
+        int n = patches.length;
+
+        // Initialising a array list where adjacent element
+        // will be stored
+        ArrayList<Patch> adjacentPatches = new ArrayList<Patch>();
+        int i = 0;
+        if (!isValidPos(x, y, n)) {
+            return adjacentPatches;
+
+        }
+
+        // Checking for all the possible adjacent positions
+        if (isValidPos(x - 1, y - 1, n)) {
+            adjacentPatches.add(patches[x - 1][y - 1]);
+        }
+        if (isValidPos(x - 1, y, n)) {
+            adjacentPatches.add(patches[x - 1][y]);
+        }
+        if (isValidPos(x - 1, y + 1, n)) {
+            adjacentPatches.add(patches[x - 1][y + 1]);
+        }
+        if (isValidPos(x, y - 1, n)) {
+            adjacentPatches.add(patches[x][y - 1]);
+        }
+        if (isValidPos(x, y + 1, n)) {
+            adjacentPatches.add(patches[x][y + 1]);
+        }
+        if (isValidPos(x + 1, y - 1, n)) {
+            adjacentPatches.add(patches[x + 1][y - 1]);
+        }
+        if (isValidPos(x + 1, y, n)) {
+            adjacentPatches.add(patches[x + 1][y]);
+        }
+        if (isValidPos(x + 1, y + 1, n)) {
+            adjacentPatches.add(patches[x + 1][y + 1]);
+        }
+        // Returning the arraylist
+        return adjacentPatches;
+    }
+
+    public boolean isValidPos(int x, int y, int n) {
+        if (x < 0 || y < 0 || x > n - 1 || y > n - 1) {
+            return false;
+        }
+        return true;
+    }
+
 }
