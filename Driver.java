@@ -9,12 +9,14 @@ public class Driver {
     public double meanCatabolicHormone;
     public Recorder recorder;
     public Patch[][] patches;
+    public int restDaysLeft;
 
     public Driver() throws IOException {
         tick = 0;
         totalMuscleMass = 0;
         recorder = new Recorder();
         patches = new Patch[Params.GRID_SIZE][Params.GRID_SIZE];
+        restDaysLeft = 0;
         setup();
     }
 
@@ -29,16 +31,20 @@ public class Driver {
         while (tick < Params.MAX_TICK) {
 
             perform_daily_activity();
-            if (Inputs.IS_LIFT && tick % Inputs.DAYS_BETWEEN_WORKOUTS == 0) {
+            if (Inputs.IS_LIFT && restDaysLeft == 0) {
                 liftWeights();
             }
-            sleep();
+            if (Inputs.VARIANCE > 0) {
+                sleep(getVarianceSleepHours());
+            } else {
+                sleep(Inputs.HOURS_OF_SLEEP);
+            }
             regulateHormones();
             developMuscle();
+            upddateRestDaysLeft();
             tick++;
             outputData();
         }
-        System.out.println("Done!");
     }
 
     public void setup() throws IOException {
@@ -153,19 +159,44 @@ public class Driver {
         muscle.setFiberSize(newFiberSize);
     }
 
-    public void sleep() {
+    public void sleep(double hoursOfSleep) {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
                 Patch patch = patches[x][y];
                 double curCatabolic = patch.getHormones().getCatabolicHormones();
                 double curAnabolic = patch.getHormones().getAnabolicHormones();
                 double newAnabolic = curAnabolic
-                        - 0.48 * Params.logBase10(curAnabolic) * Inputs.HOURS_OF_SLEEP;
+                        - 0.48 * Params.logBase10(curAnabolic) * hoursOfSleep;
                 double newCatabolic = curCatabolic
-                        - 0.5 * Params.logBase10(curCatabolic) * Inputs.HOURS_OF_SLEEP;
+                        - 0.5 * Params.logBase10(curCatabolic) * hoursOfSleep;
 
                 patch.getHormones().setAnabolicHormones(newAnabolic);
                 patch.getHormones().setCatabolicHormones(newCatabolic);
+            }
+        }
+    }
+
+    public double getVarianceSleepHours() {
+
+        double sleepTime = Inputs.HOURS_OF_SLEEP;
+        if (Math.random() > Inputs.VARIANCE) {
+            // reduce sleep time
+            sleepTime = sleepTime * (1 - Params.SLEEP_PERCENTAGE_PENALTY);
+        }
+        return sleepTime;
+
+    }
+
+    public void upddateRestDaysLeft() {
+        if (restDaysLeft == 0) {
+            restDaysLeft = Inputs.DAYS_BETWEEN_WORKOUTS;
+        } else {
+            if (Inputs.VARIANCE > 0) {
+                if (Math.random() > Inputs.VARIANCE) {
+                    restDaysLeft--;
+                }
+            } else {
+                restDaysLeft--;
             }
         }
     }

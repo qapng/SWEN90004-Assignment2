@@ -14,6 +14,7 @@ class Params {
     static final int NUM_PATCH = GRID_SIZE * GRID_SIZE; // 17*17 grid
     static final int BASE_FIBER_MAX_SIZE = 4;
     static final int MAX_NUM_PATCH_NEIGHBOUR = 8;
+    static final double SLEEP_PERCENTAGE_PENALTY = 0.2;
 
     static double getBaseFiberSize(double max_size) {
 
