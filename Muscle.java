@@ -1,22 +1,27 @@
 public class Muscle {
-    private double fiber_size;
-    private double max_size;
+    private double fiberSize;
+    private double maxSize;
 
     public Muscle() {
-        max_size = Params.get_fiber_max_size();
-        fiber_size = Params.get_base_fiber_size(max_size);
+        this.maxSize = Params.getFiberMaxSize();
+        this.fiberSize = Params.getBaseFiberSize(maxSize);
     }
 
-    public double get_fiber_size() {
-        return fiber_size;
+    public double getFiberSize() {
+        return fiberSize;
     }
 
-    public void set_fiber_size(double fiber_size) {
-        this.fiber_size = fiber_size;
+    public void setFiberSize(double fiberSize) {
+        this.fiberSize = fiberSize;
     }
 
-    public double get_max_size() {
-        return max_size;
+    public double getMaxSize() {
+        return maxSize;
+    }
+
+    @Override
+    public String toString() {
+        return "fiber_size: " + fiberSize + " max_size: " + maxSize;
     }
 
 }

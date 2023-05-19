@@ -12,14 +12,14 @@ class Recorder {
                 .collect(Collectors.joining(","));
     }
 
-    public void output_data_to_csv(String filename, String[] data) throws IOException {
+    public void outputDataToCsv(String filename, String[] data) throws IOException {
         FileWriter pw = new FileWriter(filename, true);
         pw.append(convertToCSV(data) + '\n');
         pw.flush();
         pw.close();
     }
 
-    public void clear_file_content(String filename) {
+    public void clearFileContent(String filename) {
         try {
             new FileWriter(filename, false).close();
         } catch (IOException e) {
