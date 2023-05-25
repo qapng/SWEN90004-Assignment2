@@ -60,12 +60,6 @@ public class Driver {
             tick++;
             outputData();
         }
-
-        // while (tick < Params.MAX_TICK) {
-        // developMuscle();
-        // tick++;
-        // outputData();
-        // }
     }
 
     /**
