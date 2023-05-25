@@ -17,7 +17,7 @@ class Inputs {
     static double PERCENTAGE_SLOW_TWITCH_MUSCLE = 50; // 0-100
     // VARIANCE represent how much the person deviates from sleep and workout
     // schedule.
-    static double VARIANCE = 0.2; // 0-0.5
+    static double VARIANCE = 0; // 0-0.5
 
     static void initialiseInputs(String[] args) {
         if (args.length != 6 && args.length != 0) {
@@ -32,7 +32,14 @@ class Inputs {
             DAYS_BETWEEN_WORKOUTS = Integer.parseInt(args[3]);
             PERCENTAGE_SLOW_TWITCH_MUSCLE = Double.parseDouble(args[4]);
             VARIANCE = Double.parseDouble(args[5]);
+
         }
+        System.out.println(IS_LIFT);
+        System.out.println(INTENSITY);
+        System.out.println(HOURS_OF_SLEEP);
+        System.out.println(DAYS_BETWEEN_WORKOUTS);
+        System.out.println(PERCENTAGE_SLOW_TWITCH_MUSCLE);
+        System.out.println(VARIANCE);
     }
 
 }

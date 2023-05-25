@@ -60,6 +60,12 @@ public class Driver {
             tick++;
             outputData();
         }
+
+        // while (tick < Params.MAX_TICK) {
+        // developMuscle();
+        // tick++;
+        // outputData();
+        // }
     }
 
     /**
@@ -236,9 +242,9 @@ public class Driver {
                 double curCatabolic = patch.getHormones().getCatabolicHormones();
                 double curAnabolic = patch.getHormones().getAnabolicHormones();
                 double newAnabolic = curAnabolic
-                        - 0.48 * Params.logBase10(curAnabolic) * hoursOfSleep;
+                        - (0.48 * Params.logBase10(curAnabolic) * hoursOfSleep);
                 double newCatabolic = curCatabolic
-                        - 0.5 * Params.logBase10(curCatabolic) * hoursOfSleep;
+                        - (0.5 * Params.logBase10(curCatabolic) * hoursOfSleep);
 
                 patch.getHormones().setAnabolicHormones(newAnabolic);
                 patch.getHormones().setCatabolicHormones(newCatabolic);
