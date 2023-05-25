@@ -1,3 +1,9 @@
+/**
+ * This class represents a muscle.
+ * Each patch has a muscle.
+ * Each muscle has a current fiber size and a maximum size.
+ */
+
 public class Muscle {
     private double fiberSize;
     private double maxSize;
@@ -7,6 +13,7 @@ public class Muscle {
         this.fiberSize = Params.getBaseFiberSize(maxSize);
     }
 
+    // Below are the getters and setters for the class.
     public double getFiberSize() {
         return fiberSize;
     }

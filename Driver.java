@@ -1,3 +1,8 @@
+
+/**
+ * This is the class that drives the simulation. 
+ */
+
 import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
@@ -20,16 +25,24 @@ public class Driver {
         setup();
     }
 
+    /**
+     * @throws IOException
+     */
     public void drive() throws IOException {
+        // First clear the file since it may contain old data.
         recorder.clearFileContent(Params.OUTPUT_FILE_NAME);
+
+        // Add headers and first row of data (tick 0) to file.
         String[] headers = { "Ticks", "Anabolic", "Catabolic", "Muscle Mass" };
         recorder.outputDataToCsv(Params.OUTPUT_FILE_NAME, headers);
         updateTotalHormone();
         updateTotalMuscleMass();
         outputData();
 
+        // Loop until tick reaches max.
         while (tick < Params.MAX_TICK) {
 
+            // Perform sequence of actions
             perform_daily_activity();
             if (Inputs.IS_LIFT && restDaysLeft == 0) {
                 liftWeights();
@@ -42,11 +55,19 @@ public class Driver {
             regulateHormones();
             developMuscle();
             upddateRestDaysLeft();
+
+            // Update tick and output data.
             tick++;
             outputData();
         }
     }
 
+    /**
+     * @param
+     * @throws IOException
+     *                     Setup initialise the array of patches and regulate the
+     *                     muscle fiber.
+     */
     public void setup() throws IOException {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
@@ -57,6 +78,12 @@ public class Driver {
 
     }
 
+    /**
+     * @param
+     * @throws IOException
+     *                     Update the output variables (hormones and muscle) then
+     *                     output to csv file.
+     */
     public void outputData() throws IOException {
         updateTotalHormone();
         updateTotalMuscleMass();
@@ -66,6 +93,10 @@ public class Driver {
 
     }
 
+    /**
+     * @param
+     * Loop        through patches and update the total muscle mass count.
+     */
     public void updateTotalMuscleMass() {
         double newtotal = 0;
         for (int x = 0; x < patches.length; x++) {
@@ -76,6 +107,10 @@ public class Driver {
         totalMuscleMass = newtotal;
     }
 
+    /**
+     * @param
+     * Loop        through patches and update the total and mean hormone count.
+     */
     public void updateTotalHormone() {
         double anabolicTotal = 0;
         double catabolicTotal = 0;
@@ -89,6 +124,12 @@ public class Driver {
         meanCatabolicHormone = catabolicTotal / Params.NUM_PATCH;
     }
 
+    /**
+     * @param
+     * simulate        the hormonal effect of normal lifestyle
+     *                 this functions updates the hormonal count based on NetLogo
+     *                 formula
+     */
     public void perform_daily_activity() {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
@@ -106,6 +147,12 @@ public class Driver {
         }
     }
 
+    /**
+     * @param
+     * simulate        hormonal effect of weight training
+     *                 this functions updates the hormonal count based on NetLogo
+     *                 formula
+     */
     public void liftWeights() {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
@@ -128,6 +175,10 @@ public class Driver {
         }
     }
 
+    /**
+     * @param
+     * simulate        the effect of muscle development
+     */
     public void developMuscle() {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
@@ -138,6 +189,11 @@ public class Driver {
         }
     }
 
+    /**
+     * @param muscle
+     *               this function enforce the limit of muscle fiber size, both min
+     *               and max.
+     */
     public void regulateMuscleFiber(Muscle muscle) {
 
         if (muscle.getFiberSize() < 1) {
@@ -149,6 +205,14 @@ public class Driver {
 
     }
 
+    /**
+     * 
+     * @param muscle
+     * @param hormones
+     *                 simulate the process of muscle growth where catabolic
+     *                 hormones breaks down the muscle and
+     *                 anabolic hormones rebuilds them bigger and stronger
+     */
     public void grow(Muscle muscle, Hormones hormones) {
         double curFiberSize = muscle.getFiberSize();
         double curAnabolic = hormones.getAnabolicHormones();
@@ -159,6 +223,12 @@ public class Driver {
         muscle.setFiberSize(newFiberSize);
     }
 
+    /**
+     * 
+     * @param hoursOfSleep
+     *                     simulate the hormonal effect of sleep using formula from
+     *                     NetLogo
+     */
     public void sleep(double hoursOfSleep) {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
@@ -176,6 +246,12 @@ public class Driver {
         }
     }
 
+    /**
+     * 
+     * @return sleepTime
+     *         this function implements the variance of sleep schedule like real
+     *         life
+     */
     public double getVarianceSleepHours() {
 
         double sleepTime = Inputs.HOURS_OF_SLEEP;
@@ -187,9 +263,15 @@ public class Driver {
 
     }
 
+    /**
+     * this function keep tracks of how many days left before the next workout
+     * starts
+     * this function also implements the variance of daily life by randomly adding
+     * an extra rest day
+     */
     public void upddateRestDaysLeft() {
         if (restDaysLeft == 0) {
-            restDaysLeft = Inputs.DAYS_BETWEEN_WORKOUTS;
+            restDaysLeft = Inputs.DAYS_BETWEEN_WORKOUTS - 1;
         } else {
             if (Inputs.VARIANCE > 0) {
                 if (Math.random() > Inputs.VARIANCE) {
@@ -201,6 +283,12 @@ public class Driver {
         }
     }
 
+    /**
+     * @param
+     * Simulate        the diffusion of hormones through out the body based on the
+     *                 implementation of NetLogo
+     *                 This function also enforces the hormonal limit
+     */
     public void regulateHormones() {
         diffuseHormones(patches, Params.HORMONE_DIFFUSE_RATE);
         for (int x = 0; x < patches.length; x++) {
@@ -216,6 +304,19 @@ public class Driver {
         }
     }
 
+    /**
+     * 
+     * @param patches
+     * @param diffuseRate
+     *                    Utility function used by regluateHormones()
+     *                    Loop through all patch to spread hormones all neighbouring
+     *                    patches.
+     *                    The total hormonal count does not change.
+     *                    Each neighbouring patch will recieve 1/8 of
+     *                    diffuseRate*CurHormones, the rest will be refunded to the
+     *                    current patch
+     *                    Formula used from NetLogo
+     */
     public void diffuseHormones(Patch[][] patches, double diffuseRate) {
         for (int x = 0; x < patches.length; x++) {
             for (int y = 0; y < patches.length; y++) {
@@ -238,6 +339,15 @@ public class Driver {
 
     }
 
+    /**
+     * 
+     * @param patches
+     * @param x
+     * @param y
+     * @return
+     *         This function returns the list of all the patches adjacent to the
+     *         patch of position x,y
+     */
     public ArrayList<Patch> getAdjacentPatch(Patch[][] patches, int x, int y) {
         // Size of given 2d array
         int n = patches.length;
@@ -280,6 +390,15 @@ public class Driver {
         return adjacentPatches;
     }
 
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param n
+     * @return
+     *         return true if the position x,y is within the range of the Patch
+     *         array, otherwise false
+     */
     public boolean isValidPos(int x, int y, int n) {
         if (x < 0 || y < 0 || x > n - 1 || y > n - 1) {
             return false;
