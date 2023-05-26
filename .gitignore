@@ -1,2 +1,4 @@
 *.class
 graph copy.py
+*.png
+*.csv
